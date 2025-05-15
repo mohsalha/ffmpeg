@@ -54,15 +54,6 @@ android {
     }
 }
 
-// ✅ فقط على الأنظمة غير Windows
-if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
-    task setupDependencies(type: Exec) {
-        workingDir '.'
-        commandLine 'sh', '-c', '../scripts/setup_android.sh'
-        onlyIf { !file('libs/com.arthenica.ffmpegkit-flutter-6.0.3.aar').exists() }
-    }
-}
-
 dependencies {
     implementation 'androidx.annotation:annotation:1.5.0'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -192,9 +183,19 @@ public static String getFileMD5(File file) {
     }
 }
 
-// ✅ استخدم شرط لتحديد المهام المعتمدة على النظام
-if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+def setupScript = file("../scripts/setup_android.sh")
+
+if (!isWindows && setupScript.exists()) {
+    task setupDependencies(type: Exec) {
+        workingDir '.'
+        commandLine 'sh', '-c', setupScript.path
+        onlyIf { !file('libs/com.arthenica.ffmpegkit-flutter-6.0.3.aar').exists() }
+    }
     preBuild.dependsOn setupDependencies
     useAar.dependsOn setupDependencies
+} else {
+    println("✅ Skipping setupDependencies (either on Windows or script not found)")
 }
+
 preBuild.dependsOn useAar
