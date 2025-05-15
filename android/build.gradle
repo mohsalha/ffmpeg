@@ -137,7 +137,6 @@ public static String getFileSha1(File file) {
         input = new FileInputStream(file);
         MessageDigest digest = MessageDigest.getInstance("SHA-1");
         byte[] buffer = new byte[1024 * 1024 * 10];
-
         int len = 0;
         while ((len = input.read(buffer)) > 0) {
             digest.update(buffer, 0, len);
@@ -163,7 +162,6 @@ public static String getFileMD5(File file) {
         input = new FileInputStream(file);
         MessageDigest digest = MessageDigest.getInstance("MD5");
         byte[] buffer = new byte[1024 * 1024 * 10];
-
         int len = 0;
         while ((len = input.read(buffer)) > 0) {
             digest.update(buffer, 0, len);
@@ -183,19 +181,17 @@ public static String getFileMD5(File file) {
     }
 }
 
-def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
 def setupScript = file("../scripts/setup_android.sh")
-
-if (!isWindows && setupScript.exists()) {
+if (setupScript.exists()) {
     task setupDependencies(type: Exec) {
         workingDir '.'
-        commandLine 'sh', '-c', setupScript.path
+        commandLine 'sh', setupScript.path
         onlyIf { !file('libs/com.arthenica.ffmpegkit-flutter-6.0.3.aar').exists() }
     }
     preBuild.dependsOn setupDependencies
     useAar.dependsOn setupDependencies
 } else {
-    println("✅ Skipping setupDependencies (either on Windows or script not found)")
+    println("✅ Skipping setupDependencies (script not found)")
 }
 
 preBuild.dependsOn useAar
