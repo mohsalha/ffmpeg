@@ -55,12 +55,21 @@ android {
 }
 
 // ✅ فقط على الأنظمة غير Windows
-if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+def setupScript = file("../scripts/setup_android.sh")
+if (setupScript.exists()) {
     task setupDependencies(type: Exec) {
-        workingDir '.'
-        commandLine 'sh', '-c', '../scripts/setup_android.sh'
+        workingDir projectDir
+        if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+            commandLine 'cmd', '/c', setupScript.path
+        } else {
+            commandLine 'sh', setupScript.path
+        }
         onlyIf { !file('libs/com.arthenica.ffmpegkit-flutter-6.0.3.aar').exists() }
     }
+    preBuild.dependsOn setupDependencies
+    useAar.dependsOn setupDependencies
+} else {
+    println("✅ Skipping setupDependencies (script not found at ${setupScript.absolutePath})")
 }
 
 dependencies {
@@ -193,8 +202,5 @@ public static String getFileMD5(File file) {
 }
 
 
-if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
-    preBuild.dependsOn setupDependencies
-    useAar.dependsOn setupDependencies
-}
+
 preBuild.dependsOn useAar
